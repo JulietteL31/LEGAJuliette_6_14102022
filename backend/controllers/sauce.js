@@ -48,7 +48,7 @@ exports.modifySauce = (req, res, next) => {
 
 /*Route delete*/
 exports.deleteSauce = (req, res, next) => {
-    Sauce.findOne({_id: req.params.id})
+    Sauce.findOne({ _id: req.params.id })
     .then(sauce => {
         if(sauce.userId != req.auth.userId) {
             res.status(403).json({message: 'Requête non autorisée !'})
@@ -83,32 +83,43 @@ exports.getOneSauce = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
 
     /*Trouver les params de la sauce avec son id*/
-    Sauce.findOne({_id: req.params.id})
-    .then(sauce => {
-        const usersLikes = [sauce.usersLikes];
-        const usersDislikes = [sauce.usersDislikes];
-        const likesNumber = sauce.likes;
-        const dislikesNumber = sauce.dislikes;
-        const userId = req.auth.userId;
+    Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+        const likeType = req.body.like;
+        const userId = req.body.userId;
 
-        // const like = req.body.like;
-
-        /*Chercher dans les paramètres usersLikes et usersDislikes l'userId de l'utilisateur*/
-        const like = usersLikes.indexOf(userId);
-        const dislike = usersDislikes.indexOf(userId);
-
-        /*SI l'userId n'est pas enregistré dans la liste, ajouter ou enlever 1 like et ajouter l'userId dans le bon tableau*/
-        if(like === -1) {
-                /*Comment on sait si l'utilisateur veut liker ou disliker ? Event Listener ?*/
-        } else if(dislike === -1){
-
+        switch(likeType) {
+            /*Like*/
+            case 1 :
+                if(!sauce.usersLiked.includes(userId)) {
+                    sauce.usersLiked.push(userId);
+                    ++sauce.likes;
+                }
+                break;
+            /*Annulation*/
+            case 0 :
+                if(sauce.usersDisliked.includes(userId)) {
+                    sauce.usersDisliked.splice(sauce.usersDisliked.indexOf(userId), 1);
+                    --sauce.dislikes;
+                } else if(sauce.usersLiked.includes(userId)) {
+                    sauce.usersLiked.splice(sauce.usersLiked.indexOf(userId), 1);
+                    --sauce.likes;
+                }
+                break;
+            /*Dislike*/
+            case -1 :
+                if(!sauce.usersDisliked.includes(userId)) {
+                    sauce.usersDisliked.push(userId);
+                    ++sauce.dislikes;
+                }
+                break;
+            default :
+                res.status(401).json({message: 'La valeur de like est fausse!'});
+                break;
         }
-
-        /*SINON modifier le like de l'userId correspondant*/
-        else {
-
-        }
+        sauce.save()
+        .then(() => res.status(200).json({message: 'Avis enregistré!'}))
+        .catch((error) => res.status(400).json({ error }));
     })
-    .catch(error => res.status(400).json({error}));
-
+    .catch((error) => res.status(400).json({ error }));
 };
