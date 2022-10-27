@@ -49,7 +49,6 @@ exports.modifySauce = (req, res, next) => {
 /*Route delete*/
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
-    console.log(req.params.id)
     .then((sauce) => {
         console.log(sauce);
         if(sauce.userId != req.auth.userId) {
@@ -58,12 +57,12 @@ exports.deleteSauce = (req, res, next) => {
             const filename = sauce.imageUrl.split('/images/')[1];
             fs.unlink(`images/${filename}`, () => {
                 Sauce.deleteOne({_id: req.params.id})
-                .then(() => res.status(200).json({message: 'Sauce supprimée avec succès !'}))
-                .catch(error => res.status(401).json({error}));
+                .then(() => { res.status(200).json({message: 'Sauce supprimée avec succès !'})})
+                .catch((error) => { res.status(401).json({error})});
             });
         };
     })
-    .catch(error => res.status(500).json({error}));
+    .catch((error) => { res.status(500).json({error})});
 };
 
 
