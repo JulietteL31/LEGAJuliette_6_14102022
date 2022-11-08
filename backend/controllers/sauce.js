@@ -49,6 +49,7 @@ exports.modifySauce = (req, res, next) => {
 /*Route delete*/
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
+    // console.log(req.params.id)
     .then((sauce) => {
         console.log(sauce);
         if(sauce.userId != req.auth.userId) {
